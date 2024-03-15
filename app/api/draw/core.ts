@@ -1,58 +1,30 @@
-import { ComfyUIClient } from "../../../lib/client";
-import type { Prompt } from "../../../lib/types";
-import { findPersetById } from "../preset/db";
-import {v4} from "uuid"
+import { DrawParams, fetchDraw, translatePrompt } from "@/lib/cloudflare";
+import fs from "fs"
+import path from "path"
+import { getPreset } from "../preset/route";
 
-const serverAddress = "192.168.5.121:8188";
-const clientId = v4();
-const client = new ComfyUIClient(serverAddress, clientId);
+const getParams = async (prompt: string, presetId: string) => {
+  const transedPrompt =await translatePrompt(prompt);
+  const preset = await getPreset(presetId)
+  return {
+    model: preset.model,
+    prompt: transedPrompt,
+  } as DrawParams
+}
 
+export const draw = async (prompt: string, presetId: string) => {
 
-const getPrompt = async (prompt: string, presetId: string) => {
-  const preset = (await findPersetById(presetId)) as any;
-  const promptInner = preset.data;
-  for (const nodeId of Object.keys(promptInner)) {
-    if (promptInner[nodeId].class_type == "DeepTranslatorCLIPTextEncodeNode") {
-      promptInner[nodeId].inputs.text = prompt;
-    }
-    if (promptInner[nodeId].class_type == "KSampler") {
-      promptInner[nodeId].inputs.seed = Math.floor(
-        Math.random() * 1000000000000000
-      );
-    }
-  }
-  return promptInner;
-};
+  console.log("draw", prompt, presetId);
+  const drawParams: DrawParams = await getParams(prompt, presetId);
+  const arrayBuffer = await fetchDraw(drawParams);
+  const filename = `${drawParams.model.split("/").pop()}-${new Date().valueOf()}.png`;
+  const filePath = path.join("public", "images", filename); 
+  fs.writeFileSync(filePath, Buffer.from(arrayBuffer))
+  console.log("saveFile", filePath, arrayBuffer.byteLength)
 
-export const draw = async (prompt: string, preset: string) => {
-  if (!client.isConnected()) {
-    await client.connect();
-
-  }
-
-
-  console.log("draw", prompt, preset);
-  const promptInner: Prompt = await getPrompt(prompt, preset);
-
-  const response = await client.getImages(promptInner);
-  await client.saveImages(response, "public/images");
   const images: { filename: string }[] = [];
-  for (const nodeId of Object.keys(response)) {
-    for (const img of response[nodeId]) {
-      const { filename } = img.image;
-      images.push({ filename });
-    }
-  }
-
+  images.push({ filename });
 
   return images;
 };
 
-export const getQuque = async () => {
-  if (!client.isConnected()) {
-    await client.connect();
-  }
-  
-  const queue = await client.getQueue();
-  return queue;
-};

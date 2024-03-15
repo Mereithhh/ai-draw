@@ -32,7 +32,7 @@ export default function Home() {
   const [imgUrl, setImgUrl] = useState<string>(
     "https://generated.vusercontent.net/placeholder.svg"
   );
-  const [queue, setQueue] = useState<number>(0);
+  // const [queue, setQueue] = useState<number>(0);
   const [preset, setPreset] = useState<string>("");
   const [transPrompt, setTransPrompt] = useState<boolean>(false);
   const [transedPrompt, setTransedPrompt] =
@@ -50,11 +50,11 @@ export default function Home() {
     });
     const { data: response } = await res.json();
     console.log("setting", response);
-    const { deafultPrompt, autoTrans } = response;
+    const { defaultPrompt, autoTrans } = response;
 
     const p = window.localStorage.getItem("prompt");
     if (!!!p) {
-      setPromptFn(deafultPrompt);
+      setPromptFn(defaultPrompt);
     } else {
       console.log("本地有缓存，不使用默认值");
     }
@@ -67,17 +67,17 @@ export default function Home() {
     getSetting();
   }, []);
 
-  const getQueue = async () => {
-    const res = await fetch("/api/queue", {
-      method: "POST",
-    });
-    const { data: response } = await res.json();
-    const { queue_pending, queue_running } = response;
-    setQueue(queue_pending.length);
-    // if (queue_running.length > 0) {
-    // console.log(queue_running[0]);
-    // }
-  };
+  // const getQueue = async () => {
+  //   const res = await fetch("/api/queue", {
+  //     method: "POST",
+  //   });
+  //   const { data: response } = await res.json();
+  //   const { queue_pending, queue_running } = response;
+  //   setQueue(queue_pending.length);
+  //   // if (queue_running.length > 0) {
+  //   // console.log(queue_running[0]);
+  //   // }
+  // };
 
   const doTransPrompt = async () => {
     const res = await fetch("/api/trans", {
@@ -100,15 +100,15 @@ export default function Home() {
     setLoading(false);
   };
 
-  useEffect(() => {
-    if (loading) {
-      timer.current = setInterval(() => {
-        getQueue();
-      }, 1000);
-    } else {
-      clearInterval(timer.current);
-    }
-  }, [loading]);
+  // useEffect(() => {
+  //   if (loading) {
+  //     timer.current = setInterval(() => {
+  //       getQueue();
+  //     }, 1000);
+  //   } else {
+  //     clearInterval(timer.current);
+  //   }
+  // }, [loading]);
 
   useEffect(() => {
     const fn = (ev: KeyboardEvent) => {
@@ -235,10 +235,10 @@ export default function Home() {
                 className="flex items-center justify-between text-base"
               >
                 请输入对想要画的图片的描述
-                <Badge
+                {/* <Badge
                   variant={"secondary"}
                   className="text-base"
-                >{`排队位置：${queue.toString()}`}</Badge>
+                >{`排队位置：${queue.toString()}`}</Badge> */}
               </Label>
 
               <Textarea
@@ -329,7 +329,7 @@ export default function Home() {
         </main>
         <footer className="flex items-center justify-center p-2 sm:p-4 bg-white shadow dark:bg-gray-800">
           <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">
-            © 2024 By mereith. Powered by sdxl-turbo / DearmShaper / ...
+            © 2024 By <a href="https://github.com/Mereithhh" target="_blank" className="text-blue-400">mereith</a>. Powered by <a className="text-blue-400" target="_blank" href="https://github.com/Mereithhh/ai-draw">AI Draw</a>
           </p>
         </footer>
       </div>

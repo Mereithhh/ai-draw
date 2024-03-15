@@ -1,33 +1,14 @@
 import OpenAI from "openai";
 import { getOpenAI } from "../preset/db";
+import { generatePrompt, rewritePropmt } from "@/lib/cloudflare";
 
 export async function POST(request: Request) {
-  console.time("openaiSetting");
-  const openaiSetting = await getOpenAI();
-  if (!openaiSetting) throw new Error("openai setting not found");
-  console.timeEnd("openaiSetting");
-  console.time("chatCompletion");
-  const openai = new OpenAI({
-    apiKey:
-      openaiSetting.key ??
-      "", // This is the default and can be omitted
-  });
-
-  const chatCompletion = await openai.chat.completions.create({
-    messages: [
-      {
-        role: "user",
-        content: openaiSetting.changePrompt,
-        
-      },
-    ],
-    model: openaiSetting.changeModel ?? "gpt-3.5-turbo",
-    max_tokens: openaiSetting.changeMaxToken ?? 512,
-  });
-  console.timeEnd("chatCompletion");
+  console.time("generatePrompt");
+  const p = await generatePrompt()
+  console.timeEnd("generatePrompt");
 
   try {
-    const res = chatCompletion.choices[0].message.content;
+    const res = p
 
     return Response.json({ code: 0, data: res });
   } catch (err: any) {

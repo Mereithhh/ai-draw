@@ -22,6 +22,7 @@
     "clsx": "^2.1.0",
     "cmdk": "^0.2.1",
     "comfy-ui-client": "^0.1.2",
+    "dotenv": "^16.4.5",
     "lucide-react": "^0.317.0",
     "mongodb": "^6.3.0",
     "next": "14.1.0",
