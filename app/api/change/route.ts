@@ -1,14 +1,18 @@
-import OpenAI from "openai";
-import { getOpenAI } from "../preset/db";
-import { generatePrompt, rewritePropmt } from "@/lib/cloudflare";
+import { generatePrompt } from "@/lib/cloudflare";
+import { LimitManager } from "@/lib/limit";
 
 export async function POST(request: Request) {
+  const hasReachLimit = LimitManager.getInstance().check(1);
+  if (hasReachLimit) {
+    return Response.json({ code: 1, msg: "已经达到API使用次数限制" });
+  }
+
   console.time("generatePrompt");
-  const p = await generatePrompt()
+  const p = await generatePrompt();
   console.timeEnd("generatePrompt");
 
   try {
-    const res = p
+    const res = p;
 
     return Response.json({ code: 0, data: res });
   } catch (err: any) {

@@ -1,9 +1,10 @@
+import { LimitManager } from "@/lib/limit";
+
 export async function POST(request: Request) {
   try {
     const res = {
-      queue_pending: [],
-      queue_running: [],
-    };
+      rest_time: LimitManager.getInstance().getRestTime(),
+    }
 
     return Response.json({ code: 0, data: res });
   } catch (err: any) {

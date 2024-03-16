@@ -9,7 +9,9 @@ export async function POST(request: Request) {
   
       return Response.json({ code: 0, data: res })
     } catch (err: any) {
+      if (err.message !== "已经达到API使用次数限制") {
         console.log(err)
+      }
       return Response.json({ code: 1, msg: err.message })
     }
   

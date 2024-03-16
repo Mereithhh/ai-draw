@@ -1,4 +1,3 @@
-import { Rss } from "lucide-react";
 
 const gateway = process.env.CLOUDFLARE_GATEWAY || "";
 const apiToken = process.env.CLOUDFLARE_API_TOKEN || "";

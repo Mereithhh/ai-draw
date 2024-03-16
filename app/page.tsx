@@ -32,7 +32,7 @@ export default function Home() {
   const [imgUrl, setImgUrl] = useState<string>(
     "https://generated.vusercontent.net/placeholder.svg"
   );
-  // const [queue, setQueue] = useState<number>(0);
+  const [restTime, setRestTime] = useState<number>(0);
   const [preset, setPreset] = useState<string>("");
   const [transPrompt, setTransPrompt] = useState<boolean>(false);
   const [transedPrompt, setTransedPrompt] =
@@ -67,17 +67,17 @@ export default function Home() {
     getSetting();
   }, []);
 
-  // const getQueue = async () => {
-  //   const res = await fetch("/api/queue", {
-  //     method: "POST",
-  //   });
-  //   const { data: response } = await res.json();
-  //   const { queue_pending, queue_running } = response;
-  //   setQueue(queue_pending.length);
-  //   // if (queue_running.length > 0) {
-  //   // console.log(queue_running[0]);
-  //   // }
-  // };
+  const getRestTime = async () => {
+    const res = await fetch("/api/queue", {
+      method: "POST",
+    });
+    const { data: response } = await res.json();
+    const { rest_time } = response;
+    setRestTime(rest_time < 0 ? 0 : rest_time);
+    // if (queue_running.length > 0) {
+    // console.log(queue_running[0]);
+    // }
+  };
 
   const doTransPrompt = async () => {
     const res = await fetch("/api/trans", {
@@ -86,29 +86,32 @@ export default function Home() {
         prompt,
       }),
     });
-    const { data: response } = await res.json();
+    const json = await res.json();
 
-    return response;
+    return json;
   };
   const onTransPrompt = async () => {
     setLoading(true);
     try {
-      const newPrompt = await doTransPrompt();
-      console.log("手动改写", newPrompt);
-      setPrompt(newPrompt);
+      const { data, code, msg } = await doTransPrompt();
+      if (code != 0) {
+        alert(msg);
+        setLoading(false);
+        return;
+      }
+      console.log("手动改写", data);
+      setPrompt(data);
     } catch (err) {}
     setLoading(false);
+    getRestTime();
   };
 
-  // useEffect(() => {
-  //   if (loading) {
-  //     timer.current = setInterval(() => {
-  //       getQueue();
-  //     }, 1000);
-  //   } else {
-  //     clearInterval(timer.current);
-  //   }
-  // }, [loading]);
+  useEffect(() => {
+    getRestTime();
+    timer.current = setInterval(() => {
+      getRestTime();
+    }, 5 * 1000);
+  }, []);
 
   useEffect(() => {
     const fn = (ev: KeyboardEvent) => {
@@ -140,19 +143,29 @@ export default function Home() {
     let thisPrompt = prompt;
     if (transPrompt) {
       try {
-        const newPrompt = await doTransPrompt();
-        thisPrompt = newPrompt;
-        console.log("自动改写", newPrompt);
-        setTransedPrompt(newPrompt);
+        const { data, code, msg } = await doTransPrompt();
+        if (code != 0) {
+          alert(msg);
+          setLoading(false);
+          return;
+        }
+        thisPrompt = data;
+        console.log("自动改写", data);
+        setTransedPrompt(data);
       } catch (err) {}
     }
 
     try {
-      const { data: response } = await fetchDraw(
-        thisPrompt,
-        preset,
-        transPrompt
-      );
+      const {
+        data: response,
+        code,
+        msg,
+      } = await fetchDraw(thisPrompt, preset, transPrompt);
+      if (code != 0) {
+        alert(msg);
+        setLoading(false);
+        return;
+      }
       const url = `/api/img?path=${response[0].filename}`;
       setImgUrl(url);
       setLoading(false);
@@ -160,6 +173,7 @@ export default function Home() {
       setLoading(false);
       return;
     }
+    getRestTime();
   };
 
   const onDownload = () => {
@@ -176,11 +190,17 @@ export default function Home() {
       const res = await fetch("/api/change", {
         method: "POST",
       });
-      const { data: response } = await res.json();
+      const { data: response, code, msg } = await res.json();
+      if (code != 0) {
+        alert(msg);
+        setLoading(false);
+        return;
+      }
       console.log("换一换", response);
       setPrompt(response);
     } catch (err) {}
     setLoading(false);
+    getRestTime();
   };
 
   const onHistory = () => {};
@@ -232,13 +252,13 @@ export default function Home() {
             <div className="flex flex-col gap-1 sm:gap-2">
               <Label
                 htmlFor="prompt"
-                className="flex items-center justify-between text-base"
+                className="flex items-center justify-between text-sm md:text-base"
               >
                 请输入对想要画的图片的描述
-                {/* <Badge
+                <Badge
                   variant={"secondary"}
-                  className="text-base"
-                >{`排队位置：${queue.toString()}`}</Badge> */}
+                  className="text-sm md:text-base"
+                >{`今日剩余API次数：${restTime.toString()}`}</Badge>
               </Label>
 
               <Textarea
@@ -271,7 +291,7 @@ export default function Home() {
                     </Tooltip>
                   </TooltipProvider>
                 </div>
-                <div className="flex justify-end items-center gap-2">
+                <div className="flex justify-end items-center gap-2 ">
                   <Button
                     size="sm"
                     variant={"outline"}
@@ -329,7 +349,22 @@ export default function Home() {
         </main>
         <footer className="flex items-center justify-center p-2 sm:p-4 bg-white shadow dark:bg-gray-800">
           <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">
-            © 2024 By <a href="https://github.com/Mereithhh" target="_blank" className="text-blue-400">mereith</a>. Powered by <a className="text-blue-400" target="_blank" href="https://github.com/Mereithhh/ai-draw">AI Draw</a>
+            © 2024 By{" "}
+            <a
+              href="https://github.com/Mereithhh"
+              target="_blank"
+              className="text-blue-400"
+            >
+              mereith
+            </a>
+            . Powered by{" "}
+            <a
+              className="text-blue-400"
+              target="_blank"
+              href="https://github.com/Mereithhh/ai-draw"
+            >
+              AI Draw
+            </a>
           </p>
         </footer>
       </div>
