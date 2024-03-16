@@ -5,7 +5,7 @@
 目前基于 cloudflare ai，后续支持多种后端。
 
 
-> [在线体验地址](https://aidraw.mereith.com) （每天最多 100 次）
+> [在线体验地址](https://aidraw.mereith.com) （每日调用数有限）
 
 ![](image/preview-pc.png)
 
