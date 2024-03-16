@@ -301,7 +301,7 @@ export default function Home() {
                     {loading && (
                       <ReloadIcon className="mr-2 h-4 w-4 animate-spin" />
                     )}
-                    换一换
+                    抽卡
                   </Button>
                   <Button
                     size="sm"
@@ -327,7 +327,7 @@ export default function Home() {
                     )}
                     生成
                     <kbd className="pointer-events-none hidden h-5 select-none items-center gap-1 rounded border px-1.5 font-mono text-[10px] font-medium opacity-100 sm:flex ml-2 text-white bg-inherit">
-                      <span className="text-xs">⌘</span>K
+                      <span className="text-xs">⌘</span>Enter
                     </kbd>
                   </Button>
                 </div>
